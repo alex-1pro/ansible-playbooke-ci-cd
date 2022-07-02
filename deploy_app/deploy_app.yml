@@ -1,0 +1,88 @@
+---
+- name: config vms
+  hosts: all
+  tasks:
+    - name: ping - checking connection
+      ansible.builtin.ping:
+
+
+    - name: Prepare zip file to copy
+      find:
+        paths: "/home/ubuntu/artifact/"
+        file_type: file
+        use_regex: false
+        patterns:
+           - '*.zip'
+      register: result
+      delegate_to: localhost
+
+
+    - name: Copy artifact
+      copy:
+       src: "{{ item }}"
+       dest: /home/ubuntu
+       owner: ubuntu
+       group: ubuntu
+      loop: "{{ result.files|map(attribute='path')|list }}"
+
+
+    - name: Create a directory if it does not exist
+      ansible.builtin.file:
+        path: /home/ubuntu/bootcamp-app
+        state: directory
+        mode: '0755'
+
+    - name:  path to artifact
+      find:
+        path: "/home/ubuntu"
+        file_type: file
+        use_regex: false
+        patterns:
+          - '*.zip'
+      register: path_artifact
+
+
+    - name: debug
+      debug:
+        msg: "{{ path_artifact.files|map(attribute='path')|list }}"
+
+
+    - name: unzip artifact
+      unarchive:
+       src: "{{ item }}"
+       dest: /home/ubuntu/bootcamp-app
+       remote_src: True
+      loop: "{{ path_artifact.files|map(attribute='path')|list }}"
+
+
+    - name: copy .env to bootcampapp
+      copy:
+       src: /home/ubuntu/.env
+       dest: /home/ubuntu/bootcamp-app
+       owner: ubuntu
+       group: ubuntu
+
+
+    - name: Init database for Bootcamp-app Weight Tracker
+      command: npm run initdb
+      args:
+        chdir: /home/ubuntu/bootcamp-app
+
+
+    - name: Start Bootcamp-app Weight Tracker automatically with crontab
+      ansible.builtin.cron:
+        name: "a job for reboot"
+        special_time: reboot
+        job: sh -c "cd /home/ubuntu/bootcamp-app  && node src/index.js"
+
+
+    - name: Remove artifact (*.zip)
+      ansible.builtin.file:
+         path: "{{ item }}"
+         state: absent
+      loop: "{{ path_artifact.files|map(attribute='path')|list }}"
+
+
+    - name: reboot the vm's
+      become: true
+      ansible.builtin.reboot:

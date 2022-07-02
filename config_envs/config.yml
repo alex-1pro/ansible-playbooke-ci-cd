@@ -1,0 +1,13 @@
+---
+- name: config vms
+  hosts: all
+  tasks:
+    - name: ping - checking connection
+      ansible.builtin.ping:
+
+    - name: install node v14
+      shell: |
+          curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash - && sudo apt-get install -y nodejs
+
+    - name: install unzip
+      shell: sudo apt install zip && sudo apt install unzip
