@@ -10,4 +10,4 @@
           curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash - && sudo apt-get install -y nodejs
 
     - name: install unzip
-      shell: sudo apt install zip && sudo apt install unzip
+      shell:  sudo apt-get update && sudo apt install -y zip && sudo apt install -y unzip
