@@ -52,5 +52,5 @@
       shell: usermod -aG docker ${USER}
 
     - name: reboot the vm's
-        become: true
-        ansible.builtin.reboot:
+      become: true
+      ansible.builtin.reboot:
